@@ -13,7 +13,7 @@ const background = {
     height: 204,
     paddingX: 0,
     paddingY: canvas.height - 204,
-    drawBackground() {
+    draw() {
         context.fillStyle = '#70c5ce';
         context.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -50,7 +50,7 @@ const floor = {
     height: 112,
     paddingX: 0,
     paddingY: canvas.height - 112,
-    drawFloor() {
+    draw() {
         context.drawImage(
             sprites, // file image with sprite
             floor.spriteX, 
@@ -89,7 +89,7 @@ const bird = {
         bird.speed += this.gravity
         bird.paddingY += bird.speed
     },
-    drawBird() {
+    draw() {
         context.drawImage(
             sprites, // file image with sprite
             bird.spriteX, 
@@ -104,14 +104,80 @@ const bird = {
     }
 }
 
-function render() {
-    background.drawBackground()
-    floor.drawFloor()
-    bird.drawBird()
-    // bird.update()
+const intialScreenGame = {
+    spriteX: 134,
+    spritesY: 0,
+    width: 174,
+    height: 152,
+    paddingX: (canvas.width / 2 ) - 174 / 2,
+    paddingY: 50,
+    draw() {
+        context.drawImage(
+            sprites, // file image with sprite
+            intialScreenGame.spriteX, 
+            intialScreenGame.spritesY,   // position x and y the sprite
+            intialScreenGame.width, 
+            intialScreenGame.height, // crop sprite file image
+            intialScreenGame.paddingX, 
+            intialScreenGame.paddingY, // padding sprite
+            intialScreenGame.width, 
+            intialScreenGame.height // size sprite file image
+        );
+    }
+}
+
+
+// Screens
+
+let activeScreen = {}; 
+
+function changeScreen(newScreen) {
+    activeScreen = newScreen;
+}
+
+const screens = {
+    BEGIN: {
+        draw() {
+            background.draw()
+            floor.draw()
+            bird.draw()
+            intialScreenGame.draw();
+        },
+        click() {
+            changeScreen(screens.GAME)
+        },
+        update() {
+
+        }
+    },
+
+    GAME: {
+        draw() {
+            background.draw()
+            floor.draw()
+            bird.draw()
+        },
+        update() {
+            bird.update()
+        }
+    }
+}
+
+function render() { 
+
+    activeScreen.draw();
+    activeScreen.update();
 
     requestAnimationFrame(render);
 }
+
+window.addEventListener('click', () => {
+    if (activeScreen.click()) {
+        activeScreen.click()
+    }
+})
+
+changeScreen(screens.BEGIN);
 
 render();
 

@@ -1,5 +1,6 @@
 # Recreating the Flappy Bird game with JavaScript
 
+<img src="./image/getReady.png" />
 <img src="./image/game01.png" />
 
 ### Creating scenarios
