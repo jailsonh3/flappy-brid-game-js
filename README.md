@@ -1,7 +1,7 @@
 # Recreating the Flappy Bird game with JavaScript
 
-<img src="./image/getReady.png" />
-<img src="./image/game01.png" />
+<img src="./image/getReady.png" width="200px"/>
+<img src="./image/game01.png" width="202px"/>
 
 ### Creating scenarios
 * Game home screen
