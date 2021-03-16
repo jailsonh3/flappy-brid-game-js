@@ -1,5 +1,8 @@
 console.log('[Jailson] Flappy Bird');
 
+const hit = new Audio();
+hit.src = './sounds/hit.wav';
+
 const sprites = new Image();
 sprites.src = './assets/sprites.png';
 
@@ -76,33 +79,61 @@ const floor = {
     }
 }
 
-const bird = {
-    spriteX: 0,
-    spritesY: 0,
-    width: 33,
-    height: 24,
-    paddingX: 10,
-    paddingY: 50,
-    speed: 0,
-    gravity: 0.25,
-    update() {
-        bird.speed += this.gravity
-        bird.paddingY += bird.speed
-    },
-    draw() {
-        context.drawImage(
-            sprites, // file image with sprite
-            bird.spriteX, 
-            bird.spritesY,   // position x and y the sprite
-            bird.width, 
-            bird.height, // crop sprite file image
-            bird.paddingX, 
-            bird.paddingY, // padding sprite
-            bird.width, 
-            bird.height // size sprite file image
-        );
+function collision(bird, floor) {
+    if ((bird.paddingY + bird.height) >= floor.paddingY) {
+        return true;
     }
+
+    return false;
 }
+
+function createBird() {
+
+    const bird = {
+        spriteX: 0,
+        spritesY: 0,
+        width: 33,
+        height: 24,
+        paddingX: 10,
+        paddingY: 50,
+        speed: 0,
+        gravity: 0.25,
+        jump: 4.6,
+        jumping() {
+            bird.speed = - bird.jump
+        },
+        update() {
+            if (collision(bird, floor)) {
+                hit.play();
+
+                setTimeout(()=> {
+                    changeScreen(screens.BEGIN)
+                }, 400);
+                return;
+            }
+    
+            bird.speed += this.gravity
+            bird.paddingY += bird.speed
+        },
+        draw() {
+            context.drawImage(
+                sprites, // file image with sprite
+                bird.spriteX, 
+                bird.spritesY,   // position x and y the sprite
+                bird.width, 
+                bird.height, // crop sprite file image
+                bird.paddingX, 
+                bird.paddingY, // padding sprite
+                bird.width, 
+                bird.height // size sprite file image
+            );
+        }
+    }
+
+    return bird;
+}
+
+
 
 const intialScreenGame = {
     spriteX: 134,
@@ -128,19 +159,26 @@ const intialScreenGame = {
 
 
 // Screens
-
+const global = {};
 let activeScreen = {}; 
 
 function changeScreen(newScreen) {
     activeScreen = newScreen;
+
+    if (activeScreen.initialize) {
+        activeScreen.initialize();
+    }
 }
 
 const screens = {
     BEGIN: {
+        initialize () {
+            global.bird = createBird();
+        },
         draw() {
             background.draw()
             floor.draw()
-            bird.draw()
+            global.bird.draw()
             intialScreenGame.draw();
         },
         click() {
@@ -155,10 +193,13 @@ const screens = {
         draw() {
             background.draw()
             floor.draw()
-            bird.draw()
+            global.bird.draw()
+        },
+        click() {
+            global.bird.jumping()
         },
         update() {
-            bird.update()
+            global.bird.update()
         }
     }
 }

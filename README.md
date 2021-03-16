@@ -26,3 +26,9 @@
 
 ### Creating scoring system
  * Punctuation
+
+### Creating audio effects
+* Collision with the ground sound
+* Falling sound
+* Jumping sound
+* Punctuation sound
