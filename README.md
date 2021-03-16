@@ -5,7 +5,6 @@
     <img src="./image/game01.png"/>
 </div>
 
-
 ### Creating scenarios
 * Game home screen
     * designed the pipes
