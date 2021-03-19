@@ -113,17 +113,13 @@ function createPipes() {
             const birdHead = global.bird.paddingY;
             const birdFoot = global.bird.paddingY + global.bird.height;
 
-            if (global.bird.paddingX >= pair.x) {
-                // console.log('passaro bateu!')
-                
+            if ((global.bird.paddingX + global.bird.width - 4) >= pair.x) {
 
                 if(birdHead <= pair.pipeSky.y) {
-                    console.log('passaro bateu a cabeça!')
                     return true;
                 }
 
                 if(birdFoot >= pair.pipefloor.y) {
-                    console.log('passaro bateu os pés!')
                     return true;
                 }
             }
@@ -147,13 +143,14 @@ function createPipes() {
                 pair.x -= 2;
 
                 if (pipes.birdCollisionPipes(pair)) {
-                    console.log('Você perdeu!')
-                    changeScreen(screens.BEGIN)
+                    hit.play();
+                    changeScreen(screens.GAME_OVER)
                 }
 
                 if (pair.x + pipes.width <= 0) {
                     pipes.pairs.shift();
                 }
+
             })
 
         },
@@ -231,9 +228,8 @@ function createBird() {
             if (collision(bird, global.floor)) {
                 hit.play();
 
-                setTimeout(()=> {
-                    changeScreen(screens.BEGIN)
-                }, 400);
+                changeScreen(screens.GAME_OVER)
+              
                 return;
             }
     
@@ -259,6 +255,35 @@ function createBird() {
     }
 
     return bird;
+}
+
+function createScore() {
+
+    const score = {
+        spots: 0,
+        update() {
+            global.pipes.pairs.forEach(pair => {  
+                if (pair.x + global.pipes.width <= global.bird.width) {
+
+                    const frameInterval = 20
+                    const passedOnFrame = frames % frameInterval === 0
+
+                    if (passedOnFrame) {
+                        score.spots += 1;
+                    }
+                   
+                }
+            })
+        },
+        draw(){
+            context.font = '35px "VT323"'
+            context.textAlign = 'right'
+            context.fillStyle = 'white'
+            context.fillText(`Score: ${score.spots}`, canvas.width - 15, 35)
+        }
+    }
+
+    return score;
 }
 
 function collision(bird, floor) {
@@ -291,6 +316,33 @@ const intialScreenGame = {
     }
 }
 
+const messageGameOver = {
+    spriteX: 134,
+    spritesY: 153,
+    width: 226,
+    height: 200,
+    paddingX: (canvas.width / 2 ) - 226 / 2,
+    paddingY: 50,
+    draw(score) {
+        context.drawImage(
+            sprites, // file image with sprite
+            messageGameOver.spriteX, 
+            messageGameOver.spritesY,   // position x and y the sprite
+            messageGameOver.width, 
+            messageGameOver.height, // crop sprite file image
+            messageGameOver.paddingX, 
+            messageGameOver.paddingY, // padding sprite
+            messageGameOver.width, 
+            messageGameOver.height // size sprite file image
+        );
+
+        context.font = '25px "VT323"'
+        context.textAlign = 'right'
+        context.fillStyle = 'black'
+        context.fillText(`${score}`, canvas.width - 85 , 145)
+    }
+}
+
 const global = {};
 let activeScreen = {}; 
 
@@ -304,7 +356,7 @@ function changeScreen(newScreen) {
 
 const screens = {
     BEGIN: {
-        initialize () {
+        initialize() {
             global.floor = createFloor();
             global.pipes = createPipes();
             global.bird = createBird();
@@ -325,11 +377,15 @@ const screens = {
     },
 
     GAME: {
+        initialize() { 
+            global.score = createScore();
+        },
         draw() {
             background.draw()
             global.pipes.draw()
             global.floor.draw()
             global.bird.draw()
+            global.score.draw()
         },
         click() {
             global.bird.jumping()
@@ -338,7 +394,19 @@ const screens = {
             global.pipes.update()
             global.floor.update()
             global.bird.update()
+            global.score.update()
         }
+    },
+    GAME_OVER: {
+        draw() {
+            messageGameOver.draw(global.score.spots)
+        },
+        click() {
+            changeScreen(screens.BEGIN)
+        },
+        update() {
+            //global.score.update()
+        },
     }
 }
 
