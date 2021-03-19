@@ -1,5 +1,7 @@
 console.log('[Jailson] Flappy Bird');
 
+let frames = 0;
+
 const hit = new Audio();
 hit.src = './sounds/hit.wav';
 
@@ -11,7 +13,7 @@ const context = canvas.getContext('2d');
 
 const background = {
     spriteX: 390,
-    spritesY: 0,
+    spriteY: 0,
     width: 275,
     height: 204,
     paddingX: 0,
@@ -23,7 +25,7 @@ const background = {
         context.drawImage(
             sprites, // file image with sprite
             background.spriteX, 
-            background.spritesY,   // position x and y the sprite
+            background.spriteY,   // position x and y the sprite
             background.width, 
             background.height, // crop sprite file image
             background.paddingX, 
@@ -35,7 +37,7 @@ const background = {
         context.drawImage(
             sprites, // file image with sprite
             background.spriteX, 
-            background.spritesY,   // position x and y the sprite
+            background.spriteY,   // position x and y the sprite
             background.width, 
             background.height, // crop sprite file image
             (background.paddingX + background.width), 
@@ -46,52 +48,99 @@ const background = {
     }
 }
 
-const floor = {
-    spriteX: 0,
-    spritesY: 610,
-    width: 224,
-    height: 112,
-    paddingX: 0,
-    paddingY: canvas.height - 112,
-    draw() {
-        context.drawImage(
-            sprites, // file image with sprite
-            floor.spriteX, 
-            floor.spritesY,   // position x and y the sprite
-            floor.width, 
-            floor.height, // crop sprite file image
-            floor.paddingX, 
-            floor.paddingY, // padding sprite
-            floor.width, 
-            floor.height // size sprite file image
-        );
-        context.drawImage(
-            sprites, // file image with sprite
-            floor.spriteX, 
-            floor.spritesY,   // position x and y the sprite
-            floor.width, 
-            floor.height, // crop sprite file image
-            (floor.paddingX + floor.width), 
-            floor.paddingY, // padding sprite
-            floor.width, 
-            floor.height // size sprite file image
-        );
+function createFloor () {
+    const floor = {
+        spriteX: 0,
+        spriteY: 610,
+        width: 224,
+        height: 112,
+        paddingX: 0,
+        paddingY: canvas.height - 112,
+        update() {
+           floor.paddingX = (floor.paddingX - 1) % (floor.width / 2);
+        },
+        draw() {
+            context.drawImage(
+                sprites, // file image with sprite
+                floor.spriteX, 
+                floor.spriteY,   // position x and y the sprite
+                floor.width, 
+                floor.height, // crop sprite file image
+                floor.paddingX, 
+                floor.paddingY, // padding sprite
+                floor.width, 
+                floor.height // size sprite file image
+            );
+            context.drawImage(
+                sprites, // file image with sprite
+                floor.spriteX, 
+                floor.spriteY,   // position x and y the sprite
+                floor.width, 
+                floor.height, // crop sprite file image
+                (floor.paddingX + floor.width), 
+                floor.paddingY, // padding sprite
+                floor.width, 
+                floor.height // size sprite file image
+            );
+        }
     }
+
+    return floor;
 }
 
-function collision(bird, floor) {
-    if ((bird.paddingY + bird.height) >= floor.paddingY) {
-        return true;
+
+function createPipes() {
+
+    const pipes = {
+        width: 52,
+        height: 400,
+        floor: {
+            spriteX: 0,
+            spriteY: 169,
+            paddingX: 220,
+            paddingY: 400,
+        },
+        sky: {
+            spriteX: 52,
+            spriteY: 169,
+            paddingX: 220,
+            paddingY: 0,
+        },
+        space: 90,
+        yRandom: 150,
+        draw() {
+            context.drawImage(
+                sprites, // file image with sprite
+                pipes.sky.spriteX, pipes.sky.spriteY,   // position x and y the sprite
+                pipes.width, 
+                pipes.height, // crop sprite file image
+                pipes.sky.paddingX, 
+                (pipes.sky.paddingY - pipes.yRandom), // padding sprite
+                pipes.width, 
+                pipes.height // size sprite file image
+            );
+
+            context.drawImage(
+                sprites, // file image with sprite
+                pipes.floor.spriteX, pipes.floor.spriteY,   // position x and y the sprite
+                pipes.width, 
+                pipes.height, // crop sprite file image
+                pipes.floor.paddingX, 
+                (pipes.floor.paddingY + pipes.space - pipes.yRandom), // padding sprite
+                pipes.width, 
+                pipes.height // size sprite file image
+            );
+        }
     }
 
-    return false;
+    return pipes;
 }
 
 function createBird() {
 
     const bird = {
         spriteX: 0,
-        spritesY: 0,
+        spriteY: 0,
         width: 33,
         height: 24,
         paddingX: 10,
@@ -99,11 +148,26 @@ function createBird() {
         speed: 0,
         gravity: 0.25,
         jump: 4.6,
+        currentFrame: 0,
+        movement: [
+            { spriteX: 0, spriteY: 0 },
+            { spriteX: 0, spriteY: 26 },
+            { spriteX: 0, spriteY: 52 },
+        ],
+        updateCurrentFrame(){
+            const frameInterval = 10
+            const passedOnFrame = frames % frameInterval === 0
+
+            if(passedOnFrame) {
+                bird.currentFrame = (1 + bird.currentFrame) % (bird.movement.length); 
+            }
+        
+        },
         jumping() {
             bird.speed = - bird.jump
         },
         update() {
-            if (collision(bird, floor)) {
+            if (collision(bird, global.floor)) {
                 hit.play();
 
                 setTimeout(()=> {
@@ -116,10 +180,13 @@ function createBird() {
             bird.paddingY += bird.speed
         },
         draw() {
+            bird.updateCurrentFrame();
+
+            const { spriteX, spriteY } = bird.movement[bird.currentFrame];
+
             context.drawImage(
                 sprites, // file image with sprite
-                bird.spriteX, 
-                bird.spritesY,   // position x and y the sprite
+                spriteX, spriteY,   // position x and y the sprite
                 bird.width, 
                 bird.height, // crop sprite file image
                 bird.paddingX, 
@@ -133,7 +200,13 @@ function createBird() {
     return bird;
 }
 
+function collision(bird, floor) {
+    if ((bird.paddingY + bird.height) >= floor.paddingY) {
+        return true;
+    }
 
+    return false;
+}
 
 const intialScreenGame = {
     spriteX: 134,
@@ -157,8 +230,6 @@ const intialScreenGame = {
     }
 }
 
-
-// Screens
 const global = {};
 let activeScreen = {}; 
 
@@ -174,31 +245,36 @@ const screens = {
     BEGIN: {
         initialize () {
             global.bird = createBird();
+            global.floor = createFloor();
+            global.pipes = createPipes();
         },
         draw() {
             background.draw()
-            floor.draw()
+            global.floor.draw()
             global.bird.draw()
-            intialScreenGame.draw();
+            global.pipes.draw()
+            // intialScreenGame.draw()
         },
         click() {
             changeScreen(screens.GAME)
         },
         update() {
-
+            global.floor.update()
         }
     },
 
     GAME: {
         draw() {
             background.draw()
-            floor.draw()
+            global.floor.draw()
             global.bird.draw()
+            global.pipes.draw()
         },
         click() {
             global.bird.jumping()
         },
         update() {
+            global.floor.update()
             global.bird.update()
         }
     }
@@ -208,6 +284,8 @@ function render() {
 
     activeScreen.draw();
     activeScreen.update();
+
+    frames += 1;
 
     requestAnimationFrame(render);
 }
