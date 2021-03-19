@@ -108,28 +108,48 @@ function createPipes() {
         },
         space: 90,
         yRandom: 150,
-        draw() {
-            context.drawImage(
-                sprites, // file image with sprite
-                pipes.sky.spriteX, pipes.sky.spriteY,   // position x and y the sprite
-                pipes.width, 
-                pipes.height, // crop sprite file image
-                pipes.sky.paddingX, 
-                (pipes.sky.paddingY - pipes.yRandom), // padding sprite
-                pipes.width, 
-                pipes.height // size sprite file image
-            );
+        pairs: [],
+        update() {
+            const pairsFrames = frames % 100 === 0;
 
-            context.drawImage(
-                sprites, // file image with sprite
-                pipes.floor.spriteX, pipes.floor.spriteY,   // position x and y the sprite
-                pipes.width, 
-                pipes.height, // crop sprite file image
-                pipes.floor.paddingX, 
-                (pipes.floor.paddingY + pipes.space - pipes.yRandom), // padding sprite
-                pipes.width, 
-                pipes.height // size sprite file image
-            );
+            if (pairsFrames) {
+                pipes.pairs.push(
+                    {
+                        x: canvas.width,
+                        y: 150 * (Math.random() + 1),
+                    },
+                )
+            }
+
+            pipes.pairs.forEach( pair => { 
+                pair.x -= 2;
+            })
+
+        },
+        draw() {
+            pipes.pairs.forEach( pair => {
+                context.drawImage(
+                    sprites, // file image with sprite
+                    pipes.sky.spriteX, pipes.sky.spriteY,   // position x and y the sprite
+                    pipes.width, 
+                    pipes.height, // crop sprite file image
+                    pair.x, //pipes.sky.paddingX, 
+                    (pipes.sky.paddingY - pair.y), // padding sprite
+                    pipes.width, 
+                    pipes.height // size sprite file image
+                );
+    
+                context.drawImage(
+                    sprites, // file image with sprite
+                    pipes.floor.spriteX, pipes.floor.spriteY,   // position x and y the sprite
+                    pipes.width, 
+                    pipes.height, // crop sprite file image
+                    pair.x, //pipes.floor.paddingX, 
+                    (pipes.floor.paddingY + pipes.space - pair.y), // padding sprite
+                    pipes.width, 
+                    pipes.height // size sprite file image
+                );
+            })
         }
     }
 
@@ -244,15 +264,15 @@ function changeScreen(newScreen) {
 const screens = {
     BEGIN: {
         initialize () {
-            global.bird = createBird();
             global.floor = createFloor();
             global.pipes = createPipes();
+            global.bird = createBird();
         },
         draw() {
             background.draw()
             global.floor.draw()
-            global.bird.draw()
             global.pipes.draw()
+            global.bird.draw()
             // intialScreenGame.draw()
         },
         click() {
@@ -260,6 +280,7 @@ const screens = {
         },
         update() {
             global.floor.update()
+            global.pipes.update()
         }
     },
 
@@ -267,14 +288,15 @@ const screens = {
         draw() {
             background.draw()
             global.floor.draw()
-            global.bird.draw()
             global.pipes.draw()
+            global.bird.draw()
         },
         click() {
             global.bird.jumping()
         },
         update() {
             global.floor.update()
+            global.pipes.update()
             global.bird.update()
         }
     }
