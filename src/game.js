@@ -109,6 +109,27 @@ function createPipes() {
         space: 90,
         yRandom: 150,
         pairs: [],
+        birdCollisionPipes(pair) {
+            const birdHead = global.bird.paddingY;
+            const birdFoot = global.bird.paddingY + global.bird.height;
+
+            if (global.bird.paddingX >= pair.x) {
+                // console.log('passaro bateu!')
+                
+
+                if(birdHead <= pair.pipeSky.y) {
+                    console.log('passaro bateu a cabeça!')
+                    return true;
+                }
+
+                if(birdFoot >= pair.pipefloor.y) {
+                    console.log('passaro bateu os pés!')
+                    return true;
+                }
+            }
+
+            return false;
+        },
         update() {
             const pairsFrames = frames % 100 === 0;
 
@@ -117,12 +138,22 @@ function createPipes() {
                     {
                         x: canvas.width,
                         y: 150 * (Math.random() + 1),
+                        // y: 352,
                     },
                 )
             }
 
-            pipes.pairs.forEach( pair => { 
+            pipes.pairs.forEach(pair => { 
                 pair.x -= 2;
+
+                if (pipes.birdCollisionPipes(pair)) {
+                    console.log('Você perdeu!')
+                    changeScreen(screens.BEGIN)
+                }
+
+                if (pair.x + pipes.width <= 0) {
+                    pipes.pairs.shift();
+                }
             })
 
         },
@@ -134,7 +165,7 @@ function createPipes() {
                     pipes.width, 
                     pipes.height, // crop sprite file image
                     pair.x, //pipes.sky.paddingX, 
-                    (pipes.sky.paddingY - pair.y), // padding sprite
+                    (-pair.y), // padding sprite
                     pipes.width, 
                     pipes.height // size sprite file image
                 );
@@ -149,6 +180,16 @@ function createPipes() {
                     pipes.width, 
                     pipes.height // size sprite file image
                 );
+
+                pair.pipeSky = {
+                    x: pair.x,
+                    y: (pipes.height - pair.y)
+                }
+
+                pair.pipefloor = {
+                    x: pair.x,
+                    y: pipes.height + pipes.space - pair.y 
+                }
             })
         }
     }
@@ -270,33 +311,32 @@ const screens = {
         },
         draw() {
             background.draw()
-            global.floor.draw()
             global.pipes.draw()
+            global.floor.draw()
             global.bird.draw()
-            // intialScreenGame.draw()
+            intialScreenGame.draw()
         },
         click() {
             changeScreen(screens.GAME)
         },
         update() {
             global.floor.update()
-            global.pipes.update()
         }
     },
 
     GAME: {
         draw() {
             background.draw()
-            global.floor.draw()
             global.pipes.draw()
+            global.floor.draw()
             global.bird.draw()
         },
         click() {
             global.bird.jumping()
         },
         update() {
-            global.floor.update()
             global.pipes.update()
+            global.floor.update()
             global.bird.update()
         }
     }
